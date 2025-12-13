@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: sweet-shop-api
+  datasource:
+    url: jdbc:postgresql://localhost:5433/sweetshop_dev
+    username: postgres
+    password: password
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate # We use Flyway, so Hibernate should ONLY validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+
+server:
+  port: 8080
