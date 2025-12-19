@@ -1,10 +1,13 @@
 import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom'; // <--- 1. Import added
 import apiClient from './api/axiosClient';
 
 export default function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  
+  const navigate = useNavigate(); // <--- 2. Hook initialized
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -15,6 +18,12 @@ export default function Register() {
       setStatus('success');
       setEmail('');
       setPassword('');
+
+      // <--- 3. Redirect logic added here
+      setTimeout(() => {
+        navigate('/login');
+      }, 1500);
+
     } catch (error) {
       console.error(error);
       setStatus('error');
@@ -28,7 +37,7 @@ export default function Register() {
         
         {status === 'success' && (
           <div className="mb-4 p-3 bg-green-100 text-green-700 rounded text-center">
-            Registration Successful! You can now log in.
+            Registration Successful! Redirecting to login...
           </div>
         )}
 
@@ -70,6 +79,17 @@ export default function Register() {
             Create Account
           </button>
         </form>
+
+        {/* <--- 4. Link section added here */}
+        <div className="mt-4 text-center">
+          <p className="text-sm text-gray-600">
+            Already have an account?{' '}
+            <Link to="/login" className="text-blue-600 hover:underline">
+              Log in here
+            </Link>
+          </p>
+        </div>
+
       </div>
     </div>
   );
