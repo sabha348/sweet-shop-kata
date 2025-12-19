@@ -1,6 +1,8 @@
 package com.incubyte.sweetshop;
 
 import org.junit.jupiter.api.Test;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.incubyte.sweetshop.config.SecurityConfig;
 import org.springframework.beans.factory.annotation.Autowired; 
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -10,7 +12,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(AuthController.class)
@@ -40,5 +44,22 @@ public class AuthControllerTest {
 
         // Verify the service was actually called
         verify(authService).register("newuser@test.com", "password123");
+    }
+
+    @Test
+    void should_login_user_and_return_token() throws Exception {
+        // Given
+        LoginRequest request = new LoginRequest("test@incubyte.co", "password123");
+        String expectedToken = "jwt_token_123";
+
+        // Mock the service behavior
+        when(authService.login(request.email(), request.password())).thenReturn(expectedToken);
+
+        // When/Then
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(request))) // Convert object to JSON
+                .andExpect(status().isOk())
+                .andExpect(content().string(expectedToken));
     }
 }
