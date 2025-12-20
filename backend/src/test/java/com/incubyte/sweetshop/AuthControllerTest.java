@@ -1,9 +1,15 @@
 package com.incubyte.sweetshop;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.incubyte.sweetshop.config.SecurityConfig;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 import org.springframework.beans.factory.annotation.Autowired; 
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -11,11 +17,14 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean; // Ne
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import com.incubyte.sweetshop.JwtAuthenticationFilter;
 
 @WebMvcTest(AuthController.class)
 @Import(SecurityConfig.class) // Loads your security rules
@@ -24,8 +33,28 @@ public class AuthControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockitoBean // Replaces @MockBean in newer Spring versions
+    @MockitoBean // Replaces @MockitoBean in newer Spring versions
     private AuthService authService;
+
+    @MockitoBean
+    private JwtAuthenticationFilter jwtAuthenticationFilter; // For SecurityConfig
+
+    @MockitoBean
+    private JwtService jwtService; // For AuthController
+
+    @MockitoBean
+    private CustomUserDetailsService customUserDetailsService;
+
+    @BeforeEach
+    void setup() throws Exception {
+        doAnswer(invocation -> {
+            HttpServletRequest request = invocation.getArgument(0);
+            HttpServletResponse response = invocation.getArgument(1);
+            FilterChain chain = invocation.getArgument(2);
+            chain.doFilter(request, response); // Allow request to proceed to Controller
+            return null;
+        }).when(jwtAuthenticationFilter).doFilter(any(), any(), any());
+    }    
 
     @Test
     public void should_register_new_user() throws Exception {
@@ -40,7 +69,7 @@ public class AuthControllerTest {
         mockMvc.perform(post("/api/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
-                .andExpect(status().isCreated()); // Expect HTTP 201
+                .andExpect(status().isCreated());
 
         // Verify the service was actually called
         verify(authService).register("newuser@test.com", "password123");
