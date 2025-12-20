@@ -27,16 +27,17 @@ class SweetControllerTest {
     @WithMockUser
     void should_return_list_of_sweets() throws Exception {
         when(sweetService.getAllSweets()).thenReturn(List.of(
-            new Sweet(1L, "Jalebi", 50.0, "url1"),
-            new Sweet(2L, "Gulab Jamun", 100.0, "url2")
+            new Sweet(1L, "Jalebi", 5000L, 10, "url1"),
+            new Sweet(2L, "Gulab Jamun", 10000L, 20, "url2")
         ));
 
         mockMvc.perform(get("/api/sweets"))
                 .andExpect(status().isOk())
+                // Verify basic fields match
                 .andExpect(content().json("""
                     [
-                        {"id": 1, "name": "Jalebi", "price": 50.0, "imageUrl": "url1"},
-                        {"id": 2, "name": "Gulab Jamun", "price": 100.0, "imageUrl": "url2"}
+                        {"id": 1, "name": "Jalebi", "price": 5000, "quantity": 10, "imageUrl": "url1"},
+                        {"id": 2, "name": "Gulab Jamun", "price": 10000, "quantity": 20, "imageUrl": "url2"}
                     ]
                 """));
     }
