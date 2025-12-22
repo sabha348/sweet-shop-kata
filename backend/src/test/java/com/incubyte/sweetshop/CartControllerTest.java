@@ -13,9 +13,15 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+
+import java.util.List;
+
 import com.incubyte.sweetshop.JwtAuthenticationFilter;
 
 import jakarta.servlet.FilterChain;
@@ -62,5 +68,24 @@ class CartControllerTest {
 
         // Verify the service was called with the correct user email
         verify(cartService).addToCart(eq("test@example.com"), any(AddToCartRequest.class));
+    }
+
+    @Test
+    @WithMockUser(username = "test@example.com")
+    void should_get_cart_for_logged_in_user() throws Exception {
+        // Mock the response
+        CartResponse mockResponse = new CartResponse(
+            1L,
+            List.of(new CartItemResponse(10L, "Jalebi", 50.0, 2, 100.0)),
+            100.0
+        );
+
+        when(cartService.getCart("test@example.com")).thenReturn(mockResponse);
+
+        mockMvc.perform(get("/api/cart")
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.grandTotal").value(100.0))
+                .andExpect(jsonPath("$.items[0].sweetName").value("Jalebi"));
     }
 }

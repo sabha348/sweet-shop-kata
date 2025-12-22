@@ -18,4 +18,9 @@ public class CartController {
     public void addToCart(@AuthenticationPrincipal UserDetails userDetails, @RequestBody AddToCartRequest request) {
         cartService.addToCart(userDetails.getUsername(), request);
     }
+
+    @GetMapping
+    public CartResponse getCart(@AuthenticationPrincipal UserDetails userDetails) {
+        return cartService.getCart(userDetails.getUsername());
+    }
 }

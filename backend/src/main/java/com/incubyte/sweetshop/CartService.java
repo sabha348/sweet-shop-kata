@@ -2,6 +2,8 @@ package com.incubyte.sweetshop;
 
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -44,5 +46,29 @@ public class CartService {
         }
         
         cartRepository.save(cart);
+    }
+
+    public CartResponse getCart(String userEmail) {
+        // 1. Fetch Cart (or create empty if not exists)
+        Cart cart = cartRepository.findByUserEmail(userEmail)
+                .orElse(new Cart()); // Return empty cart if none found
+
+        // 2. Map Items to DTOs
+        List<CartItemResponse> itemResponses = cart.getItems().stream()
+                .map(item -> new CartItemResponse(
+                        item.getSweet().getId(),
+                        item.getSweet().getName(),
+                        item.getSweet().getPrice(), // Assumes price is stored as double or long
+                        item.getQuantity(),
+                        item.getSweet().getPrice() * item.getQuantity()
+                ))
+                .toList();
+
+        // 3. Calculate Grand Total
+        double grandTotal = itemResponses.stream()
+                .mapToDouble(CartItemResponse::totalPrice)
+                .sum();
+
+        return new CartResponse(cart.getId(), itemResponses, grandTotal);
     }
 }
