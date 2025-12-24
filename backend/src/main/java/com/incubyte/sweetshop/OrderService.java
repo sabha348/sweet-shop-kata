@@ -4,6 +4,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @Transactional
@@ -53,5 +54,24 @@ public class OrderService {
         // Clear Cart
         cart.getItems().clear();
         cartRepository.save(cart);
+    }
+
+    
+    public List<OrderResponse> getAllOrders(String userEmail) {
+        return orderRepository.findByUserEmailOrderByOrderDateDesc(userEmail)
+                .stream()
+                .map(order -> new OrderResponse(
+                        order.getId(),
+                        order.getOrderDate().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),
+                        order.getTotalPrice(),
+                        order.getItems().stream()
+                                .map(item -> new OrderItemResponse(
+                                        item.getSweet().getName(),
+                                        item.getQuantity(),
+                                        item.getPriceAtPurchase()
+                                ))
+                                .toList()
+                ))
+                .toList();
     }
 }
