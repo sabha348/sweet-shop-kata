@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axiosClient from "./api/axiosClient";
+import { useNavigate } from "react-router-dom";
 
 interface CartItem {
     id: number; // This is the Sweet ID
@@ -19,22 +20,42 @@ export default function Cart() {
     const [cart, setCart] = useState<CartResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchCart = async () => {
-            try {
-                const response = await axiosClient.get<CartResponse>("/cart");
-                setCart(response.data);
-            } catch (err) {
-                console.error("Error fetching cart:", err);
-                setError("Failed to load cart. Make sure you are logged in.");
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchCart();
     }, []);
+
+    const fetchCart = async () => {
+        try {
+            const response = await axiosClient.get<CartResponse>("/cart");
+            setCart(response.data);
+        } catch (err) {
+            console.error("Error fetching cart:", err);
+            setError("Failed to load cart.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleCheckout = async () => {
+        const confirm = window.confirm(`Ready to pay ₹${cart?.grandTotal}?`);
+        if (!confirm) return;
+
+        try {
+            await axiosClient.post("/orders/checkout");
+            alert("🎉 Order Placed Successfully! Your sweets are on the way.");
+            
+            // Refresh cart (it should now be empty)
+            fetchCart();
+            
+            // Optional: Redirect to Home or Order History (later)
+            navigate("/"); 
+        } catch (err) {
+            console.error("Checkout failed:", err);
+            alert("Checkout failed. Please try again.");
+        }
+    };
 
     if (loading) return <div className="text-center mt-10 text-lg">Loading your cart...</div>;
     if (error) return <div className="text-center mt-10 text-red-500">{error}</div>;
@@ -77,10 +98,10 @@ export default function Cart() {
                 <p className="text-xl text-gray-600">Grand Total:</p>
                 <p className="text-4xl font-bold text-blue-600">₹{cart.grandTotal}</p>
                 <button 
+                    onClick={handleCheckout}
                     className="mt-6 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg shadow transition-transform transform hover:scale-105"
-                    onClick={() => alert("Checkout functionality coming soon!")}
                 >
-                    Proceed to Checkout
+                    Pay & Checkout
                 </button>
             </div>
         </div>
