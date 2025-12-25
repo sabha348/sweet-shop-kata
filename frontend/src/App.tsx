@@ -4,6 +4,7 @@ import Login from "./Login";
 import RequireAuth from "./RequireAuth";
 import SweetList from "./SweetList";
 import Cart from "./Cart";
+import OrderHistory from "./OrderHistory";
 
 function AuthenticatedLayout() {
   return (
@@ -20,6 +21,7 @@ function AuthenticatedLayout() {
             <nav className="hidden md:flex gap-4 text-gray-600 font-medium">
               <Link to="/" className="hover:text-red-500 transition-colors">Home</Link>
               <Link to="/cart" className="hover:text-red-500 transition-colors">Cart 🛒</Link>
+              <Link to="/orders" className="hover:text-red-500 transition-colors">My Orders 📦</Link>
             </nav>
           </div>
 
@@ -64,6 +66,7 @@ function App() {
           }>
             <Route index element={<SweetList />} />
             <Route path="cart" element={<Cart />} />
+            <Route path="/orders" element={<OrderHistory />} />
           </Route>
 
         {/* Catch-all */}
