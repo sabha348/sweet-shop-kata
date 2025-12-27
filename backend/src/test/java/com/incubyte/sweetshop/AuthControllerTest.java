@@ -17,6 +17,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean; // Ne
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
@@ -24,6 +25,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import com.incubyte.sweetshop.JwtAuthenticationFilter;
 
 @WebMvcTest(AuthController.class)
@@ -67,6 +69,7 @@ public class AuthControllerTest {
         """;
 
         mockMvc.perform(post("/api/auth/register")
+                .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
                 .andExpect(status().isCreated());
@@ -79,16 +82,17 @@ public class AuthControllerTest {
     void should_login_user_and_return_token() throws Exception {
         // Given
         LoginRequest request = new LoginRequest("test@incubyte.co", "password123");
-        String expectedToken = "jwt_token_123";
-
+        AuthResponse expectedResponse = new AuthResponse("jwt_token_123", "ROLE_USER");
         // Mock the service behavior
-        when(authService.login(request.email(), request.password())).thenReturn(expectedToken);
+        when(authService.login(request.email(), request.password())).thenReturn(expectedResponse);
 
         // When/Then
         mockMvc.perform(post("/api/auth/login")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(request))) // Convert object to JSON
                 .andExpect(status().isOk())
-                .andExpect(content().string(expectedToken));
+                .andExpect(jsonPath("$.token").value("jwt_token_123"))
+                .andExpect(jsonPath("$.role").value("ROLE_USER"));
     }
 }

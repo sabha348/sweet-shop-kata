@@ -28,10 +28,16 @@ public class AuthService {
         userRepository.save(newUser);
     }
 
-    public String login(String email, String password) {
-        return userRepository.findByEmail(email)
-                .filter(user -> passwordEncoder.matches(password, user.getPassword()))
-                .map(user -> jwtService.generateToken(user.getEmail()))
+    public AuthResponse login(String email, String password) { // Return Type is now AuthResponse
+        // 1. Find User and Check Password
+        User user = userRepository.findByEmail(email)
+                .filter(u -> passwordEncoder.matches(password, u.getPassword()))
                 .orElseThrow(() -> new RuntimeException("Invalid Login"));
+
+        // 2. Generate Token
+        String token = jwtService.generateToken(user.getEmail());
+        
+        // 3. Return BOTH Token and Role
+        return new AuthResponse(token, user.getRole());
     }
 }

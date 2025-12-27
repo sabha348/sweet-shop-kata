@@ -58,18 +58,19 @@ public class AuthServiceTest {
         String password = "password123";
         String encodedPassword = "encoded_password";
         String expectedToken = "jwt_token_123";
+        String expectedRole = "CUSTOMER";
 
-        User user = new User(email, encodedPassword, "CUSTOMER");
+        User user = new User(email, encodedPassword, expectedRole);
         
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
         when(passwordEncoder.matches(password, encodedPassword)).thenReturn(true); // Password matches
         when(jwtService.generateToken(email)).thenReturn(expectedToken);
 
         // When
-        String token = authService.login(email, password);
-
+        AuthResponse response = authService.login(email, password); // <--- Returns Object now
         // Then
-        assertThat(token).isEqualTo(expectedToken);
+        assertThat(response.token()).isEqualTo(expectedToken);
+        assertThat(response.role()).isEqualTo(expectedRole);
     }
 
     @Test

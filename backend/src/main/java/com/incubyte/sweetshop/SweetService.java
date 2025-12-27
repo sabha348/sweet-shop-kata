@@ -14,4 +14,8 @@ public class SweetService {
     public List<Sweet> getAllSweets() {
         return sweetRepository.findAll();
     }
+
+    public Sweet addSweet(Sweet sweet) {
+        return sweetRepository.save(sweet);
+    }
 }
