@@ -5,8 +5,12 @@ import RequireAuth from "./RequireAuth";
 import SweetList from "./SweetList";
 import Cart from "./Cart";
 import OrderHistory from "./OrderHistory";
+import RequireAdmin from "./RequireAdmin";
+import AdminDashboard from "./AdminDashboard";
 
 function AuthenticatedLayout() {
+  const role = localStorage.getItem("user_role");
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation Header */}
@@ -22,15 +26,21 @@ function AuthenticatedLayout() {
               <Link to="/" className="hover:text-red-500 transition-colors">Home</Link>
               <Link to="/cart" className="hover:text-red-500 transition-colors">Cart 🛒</Link>
               <Link to="/orders" className="hover:text-red-500 transition-colors">My Orders 📦</Link>
+              {/* Show Admin Link ONLY if Admin */}
+              {role === "ROLE_ADMIN" && (
+                  <Link to="/admin" className="text-red-600 font-bold hover:text-red-800 transition-colors">
+                      Admin Dashboard ⚙️
+                  </Link>
+              )}
             </nav>
           </div>
 
           <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-500 hidden sm:inline">Securely logged in</span>
+            <span className="text-sm text-gray-500 hidden sm:inline">Logged in as {role === 'ROLE_ADMIN' ? 'Admin' : 'Customer'}</span>
             <button
               onClick={() => {
-                localStorage.removeItem("jwt_token");
-                window.location.reload();
+                localStorage.clear(); // Clear token AND role
+                window.location.href = "/login";
               }}
               className="py-2 px-4 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
             >
@@ -67,6 +77,13 @@ function App() {
             <Route index element={<SweetList />} />
             <Route path="cart" element={<Cart />} />
             <Route path="/orders" element={<OrderHistory />} />
+
+            {/* ADMIN ROUTE */}
+            <Route path="/admin" element={
+                <RequireAdmin>
+                    <AdminDashboard />
+                </RequireAdmin>
+            } />
           </Route>
 
         {/* Catch-all */}

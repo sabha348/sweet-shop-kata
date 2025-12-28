@@ -2,6 +2,11 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import apiClient from './api/axiosClient';
 
+interface LoginResponse {
+  token: string;
+  role: string;
+}
+
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -14,10 +19,10 @@ export default function Login() {
 
     try {
       // Call Backend
-      const response = await apiClient.post('/auth/login', { email, password });
-
+      const response = await apiClient.post<LoginResponse>('/auth/login', { email, password });
       // Save Token
-      localStorage.setItem('jwt_token', response.data);
+      localStorage.setItem('jwt_token', response.data.token);
+      localStorage.setItem('user_role', response.data.role);
 
       // Redirect
       navigate('/'); 
