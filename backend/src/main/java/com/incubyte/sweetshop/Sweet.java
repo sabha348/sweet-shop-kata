@@ -1,10 +1,6 @@
 package com.incubyte.sweetshop;
 
 import jakarta.persistence.*;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 
 @Entity
 @Table(name = "sweets")
@@ -40,4 +36,9 @@ public class Sweet {
     public Long getPrice() { return price; }
     public Integer getQuantity() { return quantity; }
     public String getImageUrl() { return imageUrl; }
+
+    public void setName(String name) { this.name = name; }
+    public void setPrice(Long price) { this.price = price; }
+    public void setQuantity(Integer quantity) { this.quantity = quantity; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 }

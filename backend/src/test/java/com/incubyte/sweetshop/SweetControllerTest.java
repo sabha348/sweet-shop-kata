@@ -2,6 +2,7 @@ package com.incubyte.sweetshop;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.http.MediaType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -20,10 +21,13 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.incubyte.sweetshop.JwtAuthenticationFilter;
@@ -97,5 +101,45 @@ class SweetControllerTest {
                 .andExpect(status().isForbidden());
 
         verify(sweetService, times(0)).addSweet(any());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void should_update_sweet_successfully() throws Exception {
+        // Arrange
+        Long sweetId = 1L;
+        
+        // 1. Create Sweet using your actual Constructor: (id, name, price, quantity, imageUrl)
+        Sweet updatedSweet = new Sweet(sweetId, "Updated Laddu", 200L, 50, "https://new-image.com");
+
+        // Mock the service behavior
+        Mockito.when(sweetService.updateSweet(Mockito.eq(sweetId), Mockito.any(Sweet.class)))
+               .thenReturn(updatedSweet);
+
+        // Act & Assert
+        mockMvc.perform(put("/api/sweets/{id}", sweetId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(new ObjectMapper().writeValueAsString(updatedSweet))
+                .with(csrf())) 
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Updated Laddu"))
+                .andExpect(jsonPath("$.price").value(200)) // Check for Integer/Long
+                .andExpect(jsonPath("$.quantity").value(50)); // Check for Quantity
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void should_delete_sweet_successfully() throws Exception {
+        // Arrange
+        Long sweetId = 1L;
+        
+        Mockito.doNothing().when(sweetService).deleteSweet(sweetId);
+
+        // Act & Assert
+        mockMvc.perform(delete("/api/sweets/{id}", sweetId)
+                .with(csrf()))
+                .andExpect(status().isNoContent()); // 204
+        
+        Mockito.verify(sweetService).deleteSweet(sweetId);
     }
 }
