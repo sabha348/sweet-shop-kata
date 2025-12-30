@@ -1,5 +1,6 @@
 package com.incubyte.sweetshop;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -22,5 +23,11 @@ public class CartController {
     @GetMapping
     public CartResponse getCart(@AuthenticationPrincipal UserDetails userDetails) {
         return cartService.getCart(userDetails.getUsername());
+    }
+
+    @DeleteMapping("/{sweetId}")
+    @PreAuthorize("hasRole('CUSTOMER')") // Matches your DB update
+    public void removeFromCart(@AuthenticationPrincipal UserDetails userDetails, @PathVariable Long sweetId) {
+        cartService.removeFromCart(userDetails.getUsername(), sweetId);
     }
 }

@@ -71,4 +71,22 @@ public class CartService {
 
         return new CartResponse(cart.getId(), itemResponses, grandTotal);
     }
+
+    // Add this method to CartService.java
+    public void removeFromCart(String userEmail, Long sweetId) {
+        // 1. Get the User's Cart
+        Cart cart = cartRepository.findByUserEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("Cart not found for user: " + userEmail));
+
+        // 2. Remove the item that matches the Sweet ID
+        // 'removeIf' returns true if an item was actually removed
+        boolean removed = cart.getItems().removeIf(item -> item.getSweet().getId().equals(sweetId));
+
+        if (!removed) {
+            throw new RuntimeException("Item not found in cart");
+        }
+
+        // 3. Save the Cart (Hibernate will delete the orphaned item from DB)
+        cartRepository.save(cart);
+    }
 }
