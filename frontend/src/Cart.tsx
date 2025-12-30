@@ -38,6 +38,33 @@ export default function Cart() {
         }
     };
 
+    const handleRemoveItem = async (sweetId: number) => {
+        if (!window.confirm("Are you sure you want to remove this sweet?")) return;
+
+        try {
+            // Call the backend DELETE endpoint
+            await axiosClient.delete(`/cart/${sweetId}`);
+
+            // Update UI: Filter out the removed item
+            if (cart) {
+                const updatedItems = cart.items.filter(item => item.id !== sweetId);
+                
+                // Recalculate Grand Total (Optional, but looks nice)
+                const newTotal = updatedItems.reduce((sum, item) => sum + item.totalPrice, 0);
+
+                setCart({
+                    ...cart,
+                    items: updatedItems,
+                    grandTotal: newTotal
+                });
+            }
+            alert("Item removed!");
+        } catch (err) {
+            console.error("Failed to remove item", err);
+            alert("Could not remove item.");
+        }
+    };
+
     const handleCheckout = async () => {
         const confirm = window.confirm(`Ready to pay ₹${cart?.grandTotal}?`);
         if (!confirm) return;
@@ -80,6 +107,7 @@ export default function Cart() {
                         <th className="py-3">Price</th>
                         <th className="py-3 text-center">Quantity</th>
                         <th className="py-3 text-right">Total</th>
+                        <th className="py-3 text-center">Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -89,6 +117,14 @@ export default function Cart() {
                             <td className="py-4 text-gray-600">₹{item.price}</td>
                             <td className="py-4 text-center">{item.quantity}</td>
                             <td className="py-4 text-right font-medium">₹{item.totalPrice}</td>
+                            <td className="py-4 text-center">
+                                <button 
+                                    onClick={() => handleRemoveItem(item.id)}
+                                    className="text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1 rounded transition-colors"
+                                >
+                                    Remove
+                                </button>
+                            </td>
                         </tr>
                     ))}
                 </tbody>

@@ -26,7 +26,7 @@ public class CartController {
     }
 
     @DeleteMapping("/{sweetId}")
-    @PreAuthorize("hasRole('CUSTOMER')") // Matches your DB update
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'ADMIN')")
     public void removeFromCart(@AuthenticationPrincipal UserDetails userDetails, @PathVariable Long sweetId) {
         cartService.removeFromCart(userDetails.getUsername(), sweetId);
     }
