@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    # Use H2 (In-Memory Database) instead of Postgres
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
+    username: sa
+    password: 
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      # Let Hibernate create the tables from your Java Entities automatically
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+  flyway:
+    # Disable Flyway for tests (simpler than running Postgres migrations on H2)
+    enabled: false
