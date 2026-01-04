@@ -2,15 +2,23 @@ name: Backend CI (Spring Boot)
 
 # Trigger: Run on every push to main or pull request
 on:
+
+  # 1. Manual Button (Standard practice for debugging)
+  workflow_dispatch:
+
+  # 2. Automatic Trigger (Professional efficiency)
   push:
     branches: [ "main" ]
     paths:
       - 'backend/**' # Only run if backend code changes
+      - '.github/workflows/backend-ci.yml' # 🟢 ALSO run if you change this pipeline file
+
   pull_request:
     branches: [ "main" ]
     paths:
       - 'backend/**'
-
+      - '.github/workflows/backend-ci.yml' # 🟢 Run if a PR changes the pipeline
+      
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
@@ -35,7 +43,7 @@ jobs:
     - name: Build and Run Tests
       run: mvn -B test --file pom.xml
       
-    # 4. Optional: Upload Test Results so you can see them in GitHub UI
+    # 4. Optional: Upload Test Results so you can see them in GitHub UI, Captures test reports even if tests fail
     - name: Publish Test Report
       if: always()
       uses: actions/upload-artifact@v4
