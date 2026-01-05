@@ -60,8 +60,8 @@ class SweetControllerTest {
     @WithMockUser
     void should_return_list_of_sweets() throws Exception {
         when(sweetService.getAllSweets()).thenReturn(List.of(
-            new Sweet(1L, "Jalebi", 5000L, 10, "url1"),
-            new Sweet(2L, "Gulab Jamun", 10000L, 20, "url2")
+            new Sweet(1L, "Jalebi", 5000L, 10, "url1", "General"),
+            new Sweet(2L, "Gulab Jamun", 10000L, 20, "url2", "General")
         ));
 
         mockMvc.perform(get("/api/sweets"))
@@ -78,7 +78,7 @@ class SweetControllerTest {
     @Test
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     void should_allow_admin_to_add_sweet() throws Exception {
-        Sweet newSweet = new Sweet(null, "Kaju Katli", 1000L, 50, "url");
+        Sweet newSweet = new Sweet(null, "Kaju Katli", 1000L, 50, "url", "General");
         
         mockMvc.perform(post("/api/sweets") // <--- Update this URL
                         .with(csrf())
@@ -92,9 +92,9 @@ class SweetControllerTest {
     @Test
     @WithMockUser(username = "user", roles = {"USER"})
     void should_deny_non_admin_from_adding_sweet() throws Exception {
-        Sweet newSweet = new Sweet(null, "Hacked Sweet", 0L, 0, "url");
+        Sweet newSweet = new Sweet(null, "Hacked Sweet", 0L, 0, "url", "General");
 
-        mockMvc.perform(post("/api/sweets") // <--- Update this URL
+        mockMvc.perform(post("/api/sweets")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(newSweet)))
@@ -110,7 +110,7 @@ class SweetControllerTest {
         Long sweetId = 1L;
         
         // 1. Create Sweet using your actual Constructor: (id, name, price, quantity, imageUrl)
-        Sweet updatedSweet = new Sweet(sweetId, "Updated Laddu", 200L, 50, "https://new-image.com");
+        Sweet updatedSweet = new Sweet(sweetId, "Updated Laddu", 200L, 50, "https://new-image.com", "General");
 
         // Mock the service behavior
         Mockito.when(sweetService.updateSweet(Mockito.eq(sweetId), Mockito.any(Sweet.class)))
@@ -141,5 +141,30 @@ class SweetControllerTest {
                 .andExpect(status().isNoContent()); // 204
         
         Mockito.verify(sweetService).deleteSweet(sweetId);
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void should_create_sweet_with_category() throws Exception {
+        String jsonRequest = """
+            {
+                "name": "Gulab Jamun",
+                "price": 50,
+                "quantity": 10,
+                "imageUrl": "http://image.com",
+                "category": "Milk-Based"
+            }
+        """;
+
+        Sweet mockSweet = new Sweet(1L, "Gulab Jamun", 50L, 10, "http://image.com", "Milk-Based");
+        
+        when(sweetService.addSweet(any(Sweet.class))).thenReturn(mockSweet);
+
+        mockMvc.perform(post("/api/sweets")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonRequest))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.category").value("Milk-Based"));
     }
 }

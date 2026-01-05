@@ -13,11 +13,13 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final CartRepository cartRepository;
     private final UserRepository userRepository;
+    private final SweetRepository sweetRepository;
 
-    public OrderService(OrderRepository orderRepository, CartRepository cartRepository, UserRepository userRepository) {
+    public OrderService(OrderRepository orderRepository, CartRepository cartRepository, UserRepository userRepository, SweetRepository sweetRepository) {
         this.orderRepository = orderRepository;
         this.cartRepository = cartRepository;
         this.userRepository = userRepository;
+        this.sweetRepository = sweetRepository;
     }
 
     public void checkout(String userEmail) {

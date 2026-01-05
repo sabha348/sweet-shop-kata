@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -19,8 +21,9 @@ class OrderServiceTest {
     private final OrderRepository orderRepository = mock(OrderRepository.class);
     private final CartRepository cartRepository = mock(CartRepository.class);
     private final UserRepository userRepository = mock(UserRepository.class);
-    
-    private final OrderService orderService = new OrderService(orderRepository, cartRepository, userRepository);
+    private final SweetRepository sweetRepository = mock(SweetRepository.class);
+
+    private final OrderService orderService = new OrderService(orderRepository, cartRepository, userRepository, sweetRepository);
 
     @Test
     void should_checkout_successfully() {
@@ -30,7 +33,7 @@ class OrderServiceTest {
         
         // Create a Cart with 1 item (Price 100 * Qty 2 = 200)
         Cart cart = new Cart(user);
-        Sweet sweet = new Sweet(1L, "Jalebi", 100L, 10, "url");
+        Sweet sweet = new Sweet(1L, "Jalebi", 100L, 10, "url", "General");
         cart.getItems().add(new CartItem(cart, sweet, 2));
 
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
@@ -53,6 +56,47 @@ class OrderServiceTest {
     }
 
     @Test
+    void should_reduce_stock_when_checkout_succeeds() {
+        String userEmail = "test@example.com";
+        User user = new User(userEmail, "password", "ROLE_USER");
+        
+        Sweet sweet = new Sweet(1L, "Jalebi", 100L, 10, "url", "General"); 
+        
+        Cart cart = new Cart(user);
+        CartItem cartItem = new CartItem(cart, sweet, 3);
+        cart.getItems().add(cartItem);
+
+        when(userRepository.findByEmail(userEmail)).thenReturn(Optional.of(user));
+        when(cartRepository.findByUserEmail(userEmail)).thenReturn(Optional.of(cart));
+
+        orderService.checkout(userEmail);
+
+        // This verification will FAIL because logic isn't implemented yet
+        ArgumentCaptor<Sweet> sweetCaptor = ArgumentCaptor.forClass(Sweet.class);
+        verify(sweetRepository).save(sweetCaptor.capture());
+        
+        Sweet savedSweet = sweetCaptor.getValue();
+        assertEquals(7, savedSweet.getQuantity());
+    }
+
+    @Test
+    void should_fail_checkout_if_insufficient_stock() {
+        String userEmail = "test@example.com";
+        User user = new User(userEmail, "password", "ROLE_USER");        
+        Sweet sweet = new Sweet(1L, "Jalebi", 100L, 2, "url", "General"); 
+        
+        Cart cart = new Cart(user);
+        CartItem cartItem = new CartItem(cart, sweet, 5);
+        cart.getItems().add(cartItem);
+        
+        when(userRepository.findByEmail(userEmail)).thenReturn(Optional.of(user));
+        when(cartRepository.findByUserEmail(userEmail)).thenReturn(Optional.of(cart));
+
+        // This will FAIL because no exception is thrown yet
+        assertThrows(RuntimeException.class, () -> orderService.checkout(userEmail));
+    }
+
+    @Test
     void should_get_order_history() {
         // Arrange
         String email = "test@example.com";
@@ -63,7 +107,7 @@ class OrderServiceTest {
         // Note: In a real unit test with mocks, we can't easily set the private ID without reflection or a setter. 
         // For simplicity, we just test the mapping logic here.
         
-        Sweet sweet = new Sweet(1L, "Barfi", 50L, 100, "url");
+        Sweet sweet = new Sweet(1L, "Barfi", 50L, 100, "url", "General");
         order.addOrderItem(new OrderItem(sweet, 3, 50.0));
 
         when(orderRepository.findByUserEmailOrderByOrderDateDesc(email))
