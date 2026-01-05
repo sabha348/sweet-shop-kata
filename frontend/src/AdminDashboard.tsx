@@ -8,11 +8,12 @@ interface Sweet {
   price: string;    
   quantity: string; // 🟢 Admin still needs to manage quantity
   imageUrl: string;
+  category: string;
 }
 
 export default function AdminDashboard() {
   // State for the form
-  const [sweet, setSweet] = useState<Sweet>({ name: "", price: "", quantity: "", imageUrl: "" });
+  const [sweet, setSweet] = useState<Sweet>({ name: "", price: "", quantity: "", imageUrl: "", category: "" });
   // State for the list of sweets
   const [sweetsList, setSweetsList] = useState<Sweet[]>([]);
   // State to track if we are editing (holds the ID being edited)
@@ -61,7 +62,7 @@ export default function AdminDashboard() {
       }
 
       // Reset Form & Refresh List
-      setSweet({ name: "", price: "", quantity: "", imageUrl: "" });
+      setSweet({ name: "", price: "", quantity: "", imageUrl: "", category: "" });
       fetchSweets();
 
     } catch (error) {
@@ -77,7 +78,8 @@ export default function AdminDashboard() {
         name: sweetToEdit.name, 
         price: String(sweetToEdit.price),       
         quantity: String(sweetToEdit.quantity), 
-        imageUrl: sweetToEdit.imageUrl 
+        imageUrl: sweetToEdit.imageUrl, 
+        category: sweetToEdit.category
     });
   };
 
@@ -114,6 +116,17 @@ export default function AdminDashboard() {
             className="w-full p-2 border rounded"
             required
           />
+
+          <input
+            type="text"
+            name="category"
+            placeholder="Category (e.g., Milk-Based)"
+            value={sweet.category}
+            onChange={handleChange}
+            className="w-full p-2 border rounded"
+            required
+          />
+
           <div className="flex gap-4">
             <input
                 type="number"
@@ -155,7 +168,7 @@ export default function AdminDashboard() {
             {editingId && (
                 <button 
                     type="button" 
-                    onClick={() => { setEditingId(null); setSweet({ name: "", price: "", quantity: "", imageUrl: "" }); }}
+                    onClick={() => { setEditingId(null); setSweet({ name: "", price: "", quantity: "", imageUrl: "", category: "" }); }}
                     className="bg-gray-500 text-white p-2 rounded hover:bg-gray-600"
                 >
                     Cancel
@@ -172,6 +185,7 @@ export default function AdminDashboard() {
             <thead>
                 <tr className="border-b bg-gray-100">
                     <th className="p-2">Name</th>
+                    <th className="p-2">Category</th>
                     <th className="p-2">Price</th>
                     <th className="p-2">Quantity</th>
                     <th className="p-2">Actions</th>
@@ -181,6 +195,7 @@ export default function AdminDashboard() {
                 {sweetsList.map((s) => (
                     <tr key={s.id} className="border-b hover:bg-gray-50">
                         <td className="p-2">{s.name}</td>
+                        <td className="p-2 text-sm text-gray-600">{s.category}</td>
                         <td className="p-2">₹{s.price}</td>
                         <td className="p-2">{s.quantity}</td>
                         <td className="p-2 space-x-2">
