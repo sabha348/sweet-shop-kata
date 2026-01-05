@@ -28,6 +28,7 @@ public class SweetService {
         existingSweet.setPrice(updatedSweet.getPrice());       // Updates Long
         existingSweet.setQuantity(updatedSweet.getQuantity()); // Updates Integer
         existingSweet.setImageUrl(updatedSweet.getImageUrl());
+        existingSweet.setCategory(updatedSweet.getCategory());
 
         return sweetRepository.save(existingSweet);
     }

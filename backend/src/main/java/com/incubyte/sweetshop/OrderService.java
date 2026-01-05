@@ -33,10 +33,22 @@ public class OrderService {
             throw new RuntimeException("Cannot checkout an empty cart");
         }
 
-        // Calculate Total
-        double total = cart.getItems().stream()
-                .mapToDouble(item -> item.getSweet().getPrice() * item.getQuantity())
-                .sum();
+        // 🟢 3. Validate Stock & Calculate Total
+        double total = 0;
+        for (CartItem item : cart.getItems()) {
+            Sweet sweet = item.getSweet();
+            
+            // Check if we have enough stock
+            if (sweet.getQuantity() < item.getQuantity()) {
+                throw new RuntimeException("Not enough stock for sweet: " + sweet.getName());
+            }
+            
+            // Reduce stock
+            sweet.setQuantity(sweet.getQuantity() - item.getQuantity());
+            sweetRepository.save(sweet); // Save the new quantity to DB
+
+            total += (sweet.getPrice() * item.getQuantity());
+        }
 
         // Create Order
         Order order = new Order(user, LocalDateTime.now(), total);
