@@ -12,6 +12,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.http.HttpMethod;
 
 import java.util.List;
 
@@ -40,10 +41,11 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             // 3. Define URL permissions
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll() // Allow Login/Register
-                .anyRequest().authenticated()               // Lock everything else
+                .requestMatchers("/api/auth/**").permitAll()           // Allow Login/Register
+                .requestMatchers(HttpMethod.GET, "/api/sweets/**").permitAll() // 🟢 NEW: Allow viewing sweets!
+                .anyRequest().authenticated()                          // Lock everything else
             )
-            // 2. Add the filter before the standard password check
+            // 4. Add the filter before the standard password check
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
