@@ -8,13 +8,13 @@ on:
 
   # 2. Automatic Trigger (Professional efficiency)
   push:
-    branches: [ "main" ]
+    branches: [ "master" ]
     paths:
       - 'backend/**' # Only run if backend code changes
       - '.github/workflows/backend-ci.yml' # 🟢 ALSO run if you change this pipeline file
 
   pull_request:
-    branches: [ "main" ]
+    branches: [ "master" ]
     paths:
       - 'backend/**'
       - '.github/workflows/backend-ci.yml' # 🟢 Run if a PR changes the pipeline
